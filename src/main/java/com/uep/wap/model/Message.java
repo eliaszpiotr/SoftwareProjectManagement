@@ -2,6 +2,7 @@ package com.uep.wap.model;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "messages")
@@ -19,7 +20,7 @@ public class Message {
     @JoinColumn(name = "recipient_id", nullable = false)
     private User recipient;
 
-    @Column(length = 255) // Nullable, więc nie potrzeba `nullable = false`
+    @Column(length = 255)
     private String subject;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -32,11 +33,11 @@ public class Message {
     @Column(nullable = false)
     private boolean readStatus;
 
-    // Konstruktor bezargumentowy jest wymagany przez JPA
+    // Constructors
     public Message() {
+        // Default constructor
     }
 
-    // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
     public Message(User sender, User recipient, String subject, String content, Date sentAt, boolean readStatus) {
         this.sender = sender;
         this.recipient = recipient;
@@ -46,7 +47,8 @@ public class Message {
         this.readStatus = readStatus;
     }
 
-    // Gettery i settery
+    // Getters and setters
+
     public Long getMessageId() {
         return messageId;
     }
@@ -103,5 +105,31 @@ public class Message {
         this.readStatus = readStatus;
     }
 
+    // Equals and hashCode
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Message message)) return false;
+        return isReadStatus() == message.isReadStatus() && Objects.equals(getMessageId(), message.getMessageId()) && Objects.equals(getSender(), message.getSender()) && Objects.equals(getRecipient(), message.getRecipient()) && Objects.equals(getSubject(), message.getSubject()) && Objects.equals(getContent(), message.getContent()) && Objects.equals(getSentAt(), message.getSentAt());
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(getMessageId(), getSender(), getRecipient(), getSubject(), getContent(), getSentAt(), isReadStatus());
+    }
+
+    // toString
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageId=" + messageId +
+                ", sender=" + sender +
+                ", recipient=" + recipient +
+                ", subject='" + subject + '\'' +
+                ", content='" + content + '\'' +
+                ", sentAt=" + sentAt +
+                ", readStatus=" + readStatus +
+                '}';
+    }
 }

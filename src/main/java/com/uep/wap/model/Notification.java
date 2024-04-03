@@ -4,6 +4,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "notifications")
@@ -19,32 +20,32 @@ public class Notification {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private NotificationType type; // Zmieniono typ z String na Enum
+    private NotificationType type;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private NotificationStatus status = NotificationStatus.DELIVERED; // Domyślna wartość
+    private NotificationStatus status;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
-    // Konstruktor bezargumentowy jest wymagany przez JPA
+    // Constructors
     public Notification() {
     }
 
-    // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
     public Notification(User recipient, NotificationType type, String message, NotificationStatus status) {
         this.recipient = recipient;
         this.type = type;
         this.message = message;
         this.status = status;
+        // 'createdAt' is managed automatically by @CreationTimestamp
     }
 
-    // Gettery i settery
+    // Getters and Setters
 
     public Long getNotificationId() {
         return notificationId;
@@ -90,15 +91,38 @@ public class Notification {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
+    // Equals and hashCode
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Notification that)) return false;
+        return Objects.equals(getNotificationId(), that.getNotificationId()) && Objects.equals(getRecipient(), that.getRecipient()) && getType() == that.getType() && Objects.equals(getMessage(), that.getMessage()) && getStatus() == that.getStatus() && Objects.equals(getCreatedAt(), that.getCreatedAt());
     }
-}
 
-enum NotificationStatus {
-    DELIVERED, READ, UNREAD
+    @Override
+    public int hashCode() {
+        return Objects.hash(getNotificationId(), getRecipient(), getType(), getMessage(), getStatus(), getCreatedAt());
+    }
+
+    // toString
+
+    @Override
+    public String toString() {
+        return "Notification{" +
+                "notificationId=" + notificationId +
+                ", recipient=" + recipient +
+                ", type=" + type +
+                ", message='" + message + '\'' +
+                ", status=" + status +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }
 
 enum NotificationType {
     MESSAGE, TASK, ALERT
+}
+
+enum NotificationStatus {
+    DELIVERED, READ, UNREAD
 }

@@ -1,8 +1,10 @@
 package com.uep.wap.model;
-import org.hibernate.annotations.CreationTimestamp;
-import javax.persistence.*;
-import java.util.Date;
 
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "issues")
@@ -12,8 +14,10 @@ public class Issue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long issueId;
 
-    @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    // ManyToOne relationship with Project
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 
     @Column(nullable = false, length = 255)
     private String title;
@@ -22,23 +26,35 @@ public class Issue {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private IssueStatus status;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private IssueType type;
 
-    @Column(name = "reported_by_id", nullable = false)
-    private Long reportedById;
+    // OneToMany relationship with Comment
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
 
-    @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "reported_at", nullable = false, updatable = false)
     private Date reportedAt;
 
-    // Getters and setters
+    // Constructors
+    public Issue() {
+        reportedAt = new Date(); // Initialize with current date/time
+    }
 
+    public Issue(Project project, String title, String description, IssueStatus status, IssueType type) {
+        this.project = project;
+        this.title = title;
+        this.description = description;
+        this.status = status;
+        this.type = type;
+        this.reportedAt = new Date(); // Initialize with current date/time
+    }
+
+    // Getters and setters
     public Long getIssueId() {
         return issueId;
     }
@@ -47,12 +63,12 @@ public class Issue {
         this.issueId = issueId;
     }
 
-    public Long getProjectId() {
-        return projectId;
+    public Project getProject() {
+        return project;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public String getTitle() {
@@ -87,12 +103,12 @@ public class Issue {
         this.type = type;
     }
 
-    public Long getReportedById() {
-        return reportedById;
+    public List<Comment> getComments() {
+        return comments;
     }
 
-    public void setReportedById(Long reportedById) {
-        this.reportedById = reportedById;
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 
     public Date getReportedAt() {
@@ -103,30 +119,32 @@ public class Issue {
         this.reportedAt = reportedAt;
     }
 
-    // Konstruktor bezargumentowy jest wymagany przez JPA
-    public Issue() {
+    // Equals and hashCode
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Issue issue)) return false;
+        return Objects.equals(getIssueId(), issue.getIssueId()) && Objects.equals(getProject(), issue.getProject()) && Objects.equals(getTitle(), issue.getTitle()) && Objects.equals(getDescription(), issue.getDescription()) && getStatus() == issue.getStatus() && getType() == issue.getType() && Objects.equals(getComments(), issue.getComments()) && Objects.equals(getReportedAt(), issue.getReportedAt());
     }
 
-    // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
-    public Issue(Long projectId, String title, String description, IssueStatus status, IssueType type, Long reportedById) {
-        this.projectId = projectId;
-        this.title = title;
-        this.description = description;
-        this.status = status;
-        this.type = type;
-        this.reportedById = reportedById;
+    @Override
+    public int hashCode() {
+        return Objects.hash(getIssueId(), getProject(), getTitle(), getDescription(), getStatus(), getType(), getComments(), getReportedAt());
     }
+
+    // toString
 
     @Override
     public String toString() {
         return "Issue{" +
                 "issueId=" + issueId +
-                ", projectId=" + projectId +
+                ", project=" + project +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status +
                 ", type=" + type +
-                ", reportedById=" + reportedById +
+                ", comments=" + comments +
                 ", reportedAt=" + reportedAt +
                 '}';
     }

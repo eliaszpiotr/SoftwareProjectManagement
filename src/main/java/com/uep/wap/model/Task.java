@@ -2,6 +2,7 @@ package com.uep.wap.model;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 @Entity
 @Table(name = "tasks")
@@ -11,11 +12,20 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long taskId;
 
-
-
+    // ManyToOne relationship with Sprint
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sprint_id")
     private Sprint sprint;
+
+    // ManyToOne relationship with BoardColumn for task's column placement
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "column_id")
+    private BoardColumn boardColumn;
+
+    // ManyToOne relationship with User for the assignee
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id")
+    private User assignee;
 
     @Column(nullable = false, length = 255)
     private String title;
@@ -31,30 +41,26 @@ public class Task {
     @Column(nullable = false)
     private TaskPriority priority;
 
-    // This can be mapped to a User entity with ManyToOne if needed
-    @Column(name = "assignee_id")
-    private Long assigneeId;
-
     @Temporal(TemporalType.TIMESTAMP)
     private Date dueDate;
 
-    // Konstruktor bezargumentowy jest wymagany przez JPA
+    // Constructors
     public Task() {
+        // Default constructor for JPA
     }
 
-    // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
-    public Task(Sprint sprint, String title, String description, TaskStatus status,
-                TaskPriority priority, Long assigneeId, Date dueDate) {
+    public Task(Sprint sprint, BoardColumn boardColumn, User assignee, String title, String description, TaskStatus status, TaskPriority priority, Date dueDate) {
         this.sprint = sprint;
+        this.boardColumn = boardColumn;
+        this.assignee = assignee;
         this.title = title;
         this.description = description;
         this.status = status;
         this.priority = priority;
-        this.assigneeId = assigneeId;
         this.dueDate = dueDate;
     }
 
-    // Gettery i settery
+    // Getters and Setters
     public Long getTaskId() {
         return taskId;
     }
@@ -69,6 +75,22 @@ public class Task {
 
     public void setSprint(Sprint sprint) {
         this.sprint = sprint;
+    }
+
+    public BoardColumn getBoardColumn() {
+        return boardColumn;
+    }
+
+    public void setBoardColumn(BoardColumn boardColumn) {
+        this.boardColumn = boardColumn;
+    }
+
+    public User getAssignee() {
+        return assignee;
+    }
+
+    public void setAssignee(User assignee) {
+        this.assignee = assignee;
     }
 
     public String getTitle() {
@@ -103,14 +125,6 @@ public class Task {
         this.priority = priority;
     }
 
-    public Long getAssigneeId() {
-        return assigneeId;
-    }
-
-    public void setAssigneeId(Long assigneeId) {
-        this.assigneeId = assigneeId;
-    }
-
     public Date getDueDate() {
         return dueDate;
     }
@@ -118,12 +132,45 @@ public class Task {
     public void setDueDate(Date dueDate) {
         this.dueDate = dueDate;
     }
+
+    // Equals and hashCode
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Task task)) return false;
+        return Objects.equals(getTaskId(), task.getTaskId()) && Objects.equals(getSprint(), task.getSprint()) && Objects.equals(getBoardColumn(), task.getBoardColumn()) && Objects.equals(getAssignee(), task.getAssignee()) && Objects.equals(getTitle(), task.getTitle()) && Objects.equals(getDescription(), task.getDescription()) && getStatus() == task.getStatus() && getPriority() == task.getPriority() && Objects.equals(getDueDate(), task.getDueDate());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getTaskId(), getSprint(), getBoardColumn(), getAssignee(), getTitle(), getDescription(), getStatus(), getPriority(), getDueDate());
+    }
+
+    // toString
+
+    @Override
+    public String toString() {
+        return "Task{" +
+                "taskId=" + taskId +
+                ", sprint=" + sprint +
+                ", boardColumn=" + boardColumn +
+                ", assignee=" + assignee +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", status=" + status +
+                ", priority=" + priority +
+                ", dueDate=" + dueDate +
+                '}';
+    }
 }
 
 enum TaskStatus {
     TODO, IN_PROGRESS, DONE, BLOCKED
+    // Additional status values can be added here
 }
 
 enum TaskPriority {
     LOW, MEDIUM, HIGH, CRITICAL
+    // Additional priority values can be added here
 }
