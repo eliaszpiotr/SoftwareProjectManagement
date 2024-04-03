@@ -75,4 +75,15 @@ public class Comment {
     }
 
     // `setCreatedAt` is not needed because the value is set automatically by the @CreationTimestamp annotation
+
+    @Override
+    public String toString() {
+        return "Comment{" +
+                "commentId=" + commentId +
+                ", issueId=" + issueId +
+                ", authorId=" + authorId +
+                ", content='" + content + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }
