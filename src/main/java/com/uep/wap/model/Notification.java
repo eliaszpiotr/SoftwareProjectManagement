@@ -17,8 +17,9 @@ public class Notification {
     @JoinColumn(name = "recipient_id", nullable = false)
     private User recipient;
 
-    @Column(nullable = false, length = 50)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private NotificationType type; // Zmieniono typ z String na Enum
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String message;
@@ -36,7 +37,7 @@ public class Notification {
     }
 
     // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
-    public Notification(User recipient, String type, String message, NotificationStatus status) {
+    public Notification(User recipient, NotificationType type, String message, NotificationStatus status) {
         this.recipient = recipient;
         this.type = type;
         this.message = message;
@@ -61,11 +62,11 @@ public class Notification {
         this.recipient = recipient;
     }
 
-    public String getType() {
+    public NotificationType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(NotificationType type) {
         this.type = type;
     }
 
@@ -96,4 +97,8 @@ public class Notification {
 
 enum NotificationStatus {
     DELIVERED, READ, UNREAD
+}
+
+enum NotificationType {
+    MESSAGE, TASK, ALERT
 }
