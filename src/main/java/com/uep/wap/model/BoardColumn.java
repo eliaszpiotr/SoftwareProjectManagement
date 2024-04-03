@@ -3,45 +3,45 @@ package com.uep.wap.model;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "boards")
-public class Board {
+@Table(name = "board_columns")
+public class BoardColumn {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long boardId;
+    private Long columnId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+    @JoinColumn(name = "board_id", nullable = false)
+    private Board board;
 
     @Column(nullable = false, length = 100)
     private String name;
 
     // Konstruktor bezargumentowy jest wymagany przez JPA
-    public Board() {
+    public BoardColumn() {
     }
 
     // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
-    public Board(Project project, String name) {
-        this.project = project;
+    public BoardColumn(Board board, String name) {
+        this.board = board;
         this.name = name;
     }
 
     // Gettery i settery
-    public Long getBoardId() {
-        return boardId;
+    public Long getColumnId() {
+        return columnId;
     }
 
-    public void setBoardId(Long boardId) {
-        this.boardId = boardId;
+    public void setColumnId(Long columnId) {
+        this.columnId = columnId;
     }
 
-    public Project getProject() {
-        return project;
+    public Board getBoard() {
+        return board;
     }
 
-    public void setProject(Project project) {
-        this.project = project;
+    public void setBoard(Board board) {
+        this.board = board;
     }
 
     public String getName() {
@@ -51,6 +51,5 @@ public class Board {
     public void setName(String name) {
         this.name = name;
     }
-
 
 }
