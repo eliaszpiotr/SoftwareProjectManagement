@@ -54,6 +54,7 @@ public class Task {
         this.dueDate = dueDate;
     }
 
+    // Gettery i settery
     public Long getTaskId() {
         return taskId;
     }

@@ -26,11 +26,12 @@ public class Comment {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
 
-    // Standard constructors, getters, and setters
+    // Konstruktor bezargumentowy jest wymagany przez JPA
 
     public Comment() {
     }
 
+    // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
     public Comment(Long issueId, Long authorId, String content) {
         this.issueId = issueId;
         this.authorId = authorId;
@@ -73,8 +74,6 @@ public class Comment {
     public Date getCreatedAt() {
         return createdAt;
     }
-
-    // `setCreatedAt` is not needed because the value is set automatically by the @CreationTimestamp annotation
 
     @Override
     public String toString() {

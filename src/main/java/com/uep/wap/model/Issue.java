@@ -37,6 +37,8 @@ public class Issue {
     @Column(name = "reported_at", nullable = false, updatable = false)
     private Date reportedAt;
 
+    // Getters and setters
+
     public Long getIssueId() {
         return issueId;
     }
@@ -101,9 +103,11 @@ public class Issue {
         this.reportedAt = reportedAt;
     }
 
+    // Konstruktor bezargumentowy jest wymagany przez JPA
     public Issue() {
     }
 
+    // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
     public Issue(Long projectId, String title, String description, IssueStatus status, IssueType type, Long reportedById) {
         this.projectId = projectId;
         this.title = title;

@@ -16,10 +16,11 @@ public class Project {
     @Column(length = 500)
     private String description;
 
+    // Konstruktor bezargumentowy jest wymagany przez JPA
     public Project() {
     }
 
-
+    // Konstruktor z argumentami dla łatwiejszego tworzenia obiektów
     public Project(String name, String description) {
         this.name = name;
         this.description = description;
