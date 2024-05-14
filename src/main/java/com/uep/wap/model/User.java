@@ -196,7 +196,7 @@ public class User {
                 '}';
     }
 
-    enum UserRole {
+    public enum UserRole {
         PROJECT_MANAGER, DEVELOPER, TESTER
         // Other roles can be added here
     }

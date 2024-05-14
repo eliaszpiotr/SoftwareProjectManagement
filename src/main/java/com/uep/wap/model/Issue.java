@@ -148,12 +148,14 @@ public class Issue {
                 ", reportedAt=" + reportedAt +
                 '}';
     }
+
+    public enum IssueStatus {
+        OPEN, IN_PROGRESS, RESOLVED, CLOSED
+    }
+
+    public enum IssueType {
+        BUG, FEATURE_REQUEST, DOCUMENTATION
+    }
 }
 
-enum IssueStatus {
-    OPEN, IN_PROGRESS, RESOLVED, CLOSED
-}
 
-enum IssueType {
-    BUG, FEATURE_REQUEST, DOCUMENTATION
-}
