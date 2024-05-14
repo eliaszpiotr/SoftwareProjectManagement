@@ -34,7 +34,11 @@ public class Notification {
     private Date createdAt;
 
     // Constructors
+    public Notification(User recipient, String type, String message, String status) {
+    }
+
     public Notification() {
+
     }
 
     public Notification(User recipient, NotificationType type, String message, NotificationStatus status) {
@@ -44,6 +48,8 @@ public class Notification {
         this.status = status;
         // 'createdAt' is managed automatically by @CreationTimestamp
     }
+
+
 
     // Getters and Setters
 
@@ -117,12 +123,14 @@ public class Notification {
                 ", createdAt=" + createdAt +
                 '}';
     }
+
+    public enum NotificationStatus {
+        DELIVERED, READ, UNREAD
+    }
+
+    public enum NotificationType {
+        MESSAGE, TASK, ALERT
+    }
+
 }
 
-enum NotificationType {
-    MESSAGE, TASK, ALERT
-}
-
-enum NotificationStatus {
-    DELIVERED, READ, UNREAD
-}

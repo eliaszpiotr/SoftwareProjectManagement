@@ -163,14 +163,15 @@ public class Task {
                 ", dueDate=" + dueDate +
                 '}';
     }
+
+    public enum TaskPriority {
+        LOW, MEDIUM, HIGH, CRITICAL
+        // Additional priority values can be added here
+    }
+
+    public enum TaskStatus {
+        TODO, IN_PROGRESS, DONE, BLOCKED
+        // Additional status values can be added here
+    }
 }
 
-enum TaskStatus {
-    TODO, IN_PROGRESS, DONE, BLOCKED
-    // Additional status values can be added here
-}
-
-enum TaskPriority {
-    LOW, MEDIUM, HIGH, CRITICAL
-    // Additional priority values can be added here
-}

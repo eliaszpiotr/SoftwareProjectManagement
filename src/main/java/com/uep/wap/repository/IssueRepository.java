@@ -20,5 +20,7 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
 
     List<Issue> findByReportedAtAfter(Date date);
 
-    List<Issue> findByStatusAndType(String status, String type);
+    List<Issue> findByStatus(Issue.IssueStatus status);
+
+    List<Issue> findByType(Issue.IssueType type);
 }

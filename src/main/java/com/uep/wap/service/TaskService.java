@@ -3,8 +3,7 @@ package com.uep.wap.service;
 import com.uep.wap.model.BoardColumn;
 import com.uep.wap.model.Sprint;
 import com.uep.wap.model.Task;
-import com.uep.wap.model.TaskPriority;
-import com.uep.wap.model.TaskStatus;
+
 import com.uep.wap.model.User;
 import com.uep.wap.repository.BoardColumnRepository;
 import com.uep.wap.repository.SprintRepository;
@@ -35,7 +34,7 @@ public class TaskService {
 
     // Tworzenie nowego zadania
     @Transactional
-    public Task createTask(Long sprintId, Long boardColumnId, Long assigneeId, String title, String description, TaskStatus status, TaskPriority priority, Date dueDate) {
+    public Task createTask(Long sprintId, Long boardColumnId, Long assigneeId, String title, String description, Task.TaskStatus status, Task.TaskPriority priority, Date dueDate) {
         Sprint sprint = sprintRepository.findById(sprintId)
                 .orElseThrow(() -> new IllegalArgumentException("Sprint with ID " + sprintId + " not found"));
         BoardColumn boardColumn = boardColumnRepository.findById(boardColumnId)
@@ -54,7 +53,7 @@ public class TaskService {
 
     // Aktualizacja zadania
     @Transactional
-    public Task updateTask(Long taskId, String title, String description, TaskStatus status, TaskPriority priority, Date dueDate) {
+    public Task updateTask(Long taskId, String title, String description, Task.TaskStatus status, Task.TaskPriority priority, Date dueDate) {
         Task existingTask = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalArgumentException("Task with ID " + taskId + " not found"));
         existingTask.setTitle(title);
