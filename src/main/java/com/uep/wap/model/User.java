@@ -25,6 +25,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(nullable = false, unique = true)
+    private String email;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private UserRole role;
@@ -53,11 +56,12 @@ public class User {
     public User() {
     }
 
-    public User(String firstName, String middleName, String lastName, String password, UserRole role) {
+    public User(String firstName, String middleName, String lastName, String email,String password, UserRole role) {
         this.firstName = firstName;
         this.middleName = middleName;
         this.lastName = lastName;
         this.password = password;
+        this.email = email;
         this.role = role;
     }
 
@@ -92,6 +96,14 @@ public class User {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPassword() {
@@ -173,6 +185,7 @@ public class User {
                 ", firstName='" + firstName + '\'' +
                 ", middleName='" + middleName + '\'' +
                 ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", role=" + role +
                 ", notifications=" + notifications +
@@ -182,9 +195,13 @@ public class User {
                 ", comments=" + comments +
                 '}';
     }
+
+    enum UserRole {
+        PROJECT_MANAGER, DEVELOPER, TESTER
+        // Other roles can be added here
+    }
 }
 
-enum UserRole {
-    PROJECT_MANAGER, DEVELOPER, TESTER
-    // Other roles can be added here
-}
+
+
+
