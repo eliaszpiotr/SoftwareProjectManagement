@@ -1,16 +1,14 @@
 package com.uep.wap.service;
 
+import com.uep.wap.dto.IssueDTO;
 import com.uep.wap.model.Issue;
-import com.uep.wap.model.Project;
 import com.uep.wap.repository.IssueRepository;
-import com.uep.wap.repository.ProjectRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class IssueService {
@@ -18,36 +16,46 @@ public class IssueService {
     @Autowired
     private IssueRepository issueRepository;
 
-    @Autowired
-    private ProjectRepository projectRepository;
-
-    // Tworzenie nowego zgłoszenia
-    @Transactional
-    public Issue createIssue(Long projectId, String title, String description, Issue.IssueStatus status, Issue.IssueType type) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project with ID " + projectId + " not found"));
-        Issue newIssue = new Issue(project, title, description, status, type);
-        return issueRepository.save(newIssue);
+    // Convert Issue to IssueDTO
+    private IssueDTO convertToDTO(Issue issue) {
+        IssueDTO issueDTO = new IssueDTO();
+        issueDTO.setIssueId(issue.getIssueId());
+        issueDTO.setTitle(issue.getTitle());
+        issueDTO.setDescription(issue.getDescription());
+        issueDTO.setIssueStatus(issue.getStatus().toString());
+        issueDTO.setReporterId(issue.getReportedAt().getUserId);
+        issueDTO.setAssigneeId(issue.getReportedAt().getUserId);
+        return issueDTO;
     }
 
-    // Pobranie zgłoszenia po ID
-    public Optional<Issue> getIssueById(Long issueId) {
-        return issueRepository.findById(issueId);
+    // Convert IssueDTO to Issue
+    private Issue convertToEntity(IssueDTO issueDTO) {
+        Issue issue = new Issue();
+        // Note: You need to fetch the User entities and set them as the reporter and assignee
+        // issue.setReporter(reporter);
+        // issue.setAssignee(assignee);
+        issue.setTitle(issueDTO.getTitle());
+        issue.setDescription(issueDTO.getDescription());
+        // Note: You need to convert the status string to an IssueStatus enum
+        // issue.setStatus(status);
+        return issue;
     }
 
-    // Do sprawdzenia z tym stringiem
+    // Creating a new issue
     @Transactional
-    public Issue updateIssue(Long issueId, String title, String description, Issue.IssueStatus status, Issue.IssueType type) {
-        Issue existingIssue = issueRepository.findById(issueId)
+    public IssueDTO createIssue(IssueDTO issueDTO) {
+        Issue newIssue = convertToEntity(issueDTO);
+        return convertToDTO(issueRepository.save(newIssue));
+    }
+
+    // Getting an issue by ID
+    public IssueDTO getIssueById(Long issueId) {
+        Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new IllegalArgumentException("Issue with ID " + issueId + " not found"));
-        existingIssue.setTitle(title);
-        existingIssue.setDescription(description);
-        existingIssue.setStatus(status);
-        existingIssue.setType(type);
-        return issueRepository.save(existingIssue);
+        return convertToDTO(issue);
     }
 
-    // Usunięcie zgłoszenia
+    // Deleting an issue
     @Transactional
     public void deleteIssue(Long issueId) {
         if (!issueRepository.existsById(issueId)) {
@@ -56,18 +64,10 @@ public class IssueService {
         issueRepository.deleteById(issueId);
     }
 
-    // Pobranie wszystkich zgłoszeń dla danego projektu
-    public List<Issue> getIssuesByProjectId(Long projectId) {
-        return issueRepository.findByProjectProjectId(projectId);
-    }
-
-    // Pobranie zgłoszeń na podstawie statusu
-    public List<Issue> getIssuesByStatus(Issue.IssueStatus status) {
-        return issueRepository.findByStatus(status);
-    }
-
-    // Pobranie zgłoszeń na podstawie typu
-    public List<Issue> getIssuesByType(Issue.IssueType type) {
-        return issueRepository.findByType(type);
+    // Getting all issues
+    public List<IssueDTO> getAllIssues() {
+        return issueRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }

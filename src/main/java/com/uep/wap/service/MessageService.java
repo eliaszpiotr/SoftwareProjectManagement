@@ -1,16 +1,14 @@
 package com.uep.wap.service;
 
+import com.uep.wap.dto.MessageDTO;
 import com.uep.wap.model.Message;
-import com.uep.wap.model.User;
 import com.uep.wap.repository.MessageRepository;
-import com.uep.wap.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MessageService {
@@ -18,50 +16,56 @@ public class MessageService {
     @Autowired
     private MessageRepository messageRepository;
 
-    @Autowired
-    private UserRepository userRepository; // Dodano repozytorium użytkowników
-
-    // Wysyłanie nowej wiadomości
-    @Transactional
-    public Message sendMessage(Long senderId, Long recipientId, String subject, String content) {
-        User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new IllegalArgumentException("Sender with ID " + senderId + " not found"));
-        User recipient = userRepository.findById(recipientId)
-                .orElseThrow(() -> new IllegalArgumentException("Recipient with ID " + recipientId + " not found"));
-
-        Message message = new Message(sender, recipient, subject, content, new Date(), false);
-        return messageRepository.save(message);
+    // Convert Message to MessageDTO
+    private MessageDTO convertToDTO(Message message) {
+        MessageDTO messageDTO = new MessageDTO();
+        messageDTO.setMessageId(message.getMessageId());
+        messageDTO.setSenderId(message.getSender().getUserId());
+        messageDTO.setRecipientId(message.getRecipient().getUserId());
+        messageDTO.setContent(message.getContent());
+        messageDTO.setTimestamp(message.getSentAt().toString());
+        return messageDTO;
     }
 
-    // Pobieranie wiadomości po ID
-    public Optional<Message> getMessageById(Long messageId) {
-        return messageRepository.findById(messageId);
+    // Convert MessageDTO to Message
+    private Message convertToEntity(MessageDTO messageDTO) {
+        Message message = new Message();
+        // Note: You need to fetch the User entities and set them as the sender and recipient
+        // message.setSender(sender);
+        // message.setRecipient(recipient);
+        message.setContent(messageDTO.getContent());
+        // Note: You need to convert the timestamp string to a Date or LocalDateTime object
+        // message.setTimestamp(timestamp);
+        return message;
     }
 
-    // Aktualizacja statusu przeczytania wiadomości
+    // Creating a new message
     @Transactional
-    public Message markMessageAsRead(Long messageId) {
+    public MessageDTO createMessage(MessageDTO messageDTO) {
+        Message newMessage = convertToEntity(messageDTO);
+        return convertToDTO(messageRepository.save(newMessage));
+    }
+
+    // Getting a message by ID
+    public MessageDTO getMessageById(Long messageId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new IllegalArgumentException("Message with ID " + messageId + " not found"));
-        message.setReadStatus(true);
-        return messageRepository.save(message);
+        return convertToDTO(message);
     }
 
-    // Pobieranie wszystkich wiadomości wysłanych przez danego użytkownika
-    public List<Message> getMessagesBySenderId(Long senderId) {
-        return messageRepository.findBySenderId(senderId);
-    }
-
-    // Pobieranie wszystkich wiadomości otrzymanych przez danego użytkownika
-    public List<Message> getMessagesByRecipientId(Long recipientId) {
-        return messageRepository.findByRecipientId(recipientId);
-    }
-
-    // Usuwanie wiadomości
+    // Deleting a message
     @Transactional
     public void deleteMessage(Long messageId) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new IllegalArgumentException("Message with ID " + messageId + " not found"));
-        messageRepository.delete(message);
+        if (!messageRepository.existsById(messageId)) {
+            throw new IllegalArgumentException("Message with ID " + messageId + " not found");
+        }
+        messageRepository.deleteById(messageId);
+    }
+
+    // Getting all messages
+    public List<MessageDTO> getAllMessages() {
+        return messageRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }

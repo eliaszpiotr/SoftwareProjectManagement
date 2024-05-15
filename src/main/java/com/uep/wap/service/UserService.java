@@ -1,5 +1,6 @@
 package com.uep.wap.service;
 
+import com.uep.wap.dto.UserDTO;
 import com.uep.wap.model.User;
 import com.uep.wap.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -15,33 +17,61 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // Dodawanie nowego użytkownika
-    @Transactional
-    public User createUser(String firstName, String middleName, String lastName, String email, String password, User.UserRole role) {
-        User newUser = new User(firstName, middleName, lastName, email, password, role);
-        return userRepository.save(newUser);
+    // Convert User to UserDTO
+    private UserDTO convertToDTO(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getUserId());
+        userDTO.setFirstName(user.getFirstName());
+        userDTO.setMiddleName(user.getMiddleName());
+        userDTO.setLastName(user.getLastName());
+        userDTO.setEmail(user.getEmail());
+        userDTO.setPassword(user.getPassword());
+        userDTO.setRole(user.getRole());
+        return userDTO;
     }
 
-    // Pobieranie użytkownika po ID
-    public Optional<User> getUserById(Long userId) {
-        return userRepository.findById(userId);
+    // Convert UserDTO to User
+    private User convertToEntity(UserDTO userDTO) {
+        User user = new User();
+        user.setUserId(userDTO.getId());
+        user.setFirstName(userDTO.getFirstName());
+        user.setMiddleName(userDTO.getMiddleName());
+        user.setLastName(userDTO.getLastName());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(userDTO.getPassword());
+        user.setRole(userDTO.getRole());
+        return user;
     }
 
-    // Aktualizacja danych użytkownika
+    // Creating a new user
     @Transactional
-    public User updateUser(Long userId, String firstName, String middleName, String lastName, String email, String password, User.UserRole role) {
+    public UserDTO createUser(UserDTO userDTO) {
+        User newUser = convertToEntity(userDTO);
+        return convertToDTO(userRepository.save(newUser));
+    }
+
+    // Getting a user by ID
+    public UserDTO getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
+        return convertToDTO(user);
+    }
+
+    // Updating user data
+    @Transactional
+    public UserDTO updateUser(Long userId, UserDTO userDTO) {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User with ID " + userId + " not found"));
-        existingUser.setFirstName(firstName);
-        existingUser.setMiddleName(middleName);
-        existingUser.setLastName(lastName);
-        existingUser.setEmail(email);
-        existingUser.setPassword(password);
-        existingUser.setRole(role);
-        return userRepository.save(existingUser);
+        existingUser.setFirstName(userDTO.getFirstName());
+        existingUser.setMiddleName(userDTO.getMiddleName());
+        existingUser.setLastName(userDTO.getLastName());
+        existingUser.setEmail(userDTO.getEmail());
+        existingUser.setPassword(userDTO.getPassword());
+        existingUser.setRole(userDTO.getRole());
+        return convertToDTO(userRepository.save(existingUser));
     }
 
-    // Usuwanie użytkownika
+    // Deleting a user
     @Transactional
     public void deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
@@ -50,23 +80,36 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    // Pobieranie użytkowników po roli
-    public List<User> getUsersByRole(User.UserRole role) {
-        return userRepository.findByRole(role.toString());
+    // Getting users by role
+    public List<UserDTO> getUsersByRole(User.UserRole role) {
+        return userRepository.findByRole(role.toString()).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    // Pobieranie użytkowników po nazwisku
-    public List<User> getUsersByLastName(String lastName) {
-        return userRepository.findByLastName(lastName);
+    // Getting users by last name
+    public List<UserDTO> getUsersByLastName(String lastName) {
+        return userRepository.findByLastName(lastName).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    // Pobieranie użytkowników po imieniu i nazwisku
-    public List<User> getUsersByFirstNameAndLastName(String firstName, String lastName) {
-        return userRepository.findByFirstNameAndLastName(firstName, lastName);
+    // Getting users by first name and last name
+    public List<UserDTO> getUsersByFirstNameAndLastName(String firstName, String lastName) {
+        return userRepository.findByFirstNameAndLastName(firstName, lastName).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
-    // Pobieranie użytkownika po adresie email
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+    // Getting a user by email
+    public UserDTO getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email);
+        return convertToDTO(user);
+    }
+
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }

@@ -1,15 +1,14 @@
 package com.uep.wap.service;
 
+import com.uep.wap.dto.NotificationDTO;
 import com.uep.wap.model.Notification;
-import com.uep.wap.model.User;
 import com.uep.wap.repository.NotificationRepository;
-import com.uep.wap.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
@@ -17,43 +16,66 @@ public class NotificationService {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    // Tworzenie nowego powiadomienia
-    @Transactional
-    public Notification createNotification(Long recipientId, Notification.NotificationType type, String message, Notification.NotificationStatus status) {
-        User recipient = userRepository.findById(recipientId)
-                .orElseThrow(() -> new IllegalArgumentException("Recipient with ID " + recipientId + " not found"));
-        Notification newNotification = new Notification(recipient, type, message, status);
-        return notificationRepository.save(newNotification);
+    // Convert Notification to NotificationDTO
+    private NotificationDTO convertToDTO(Notification notification) {
+        NotificationDTO notificationDTO = new NotificationDTO();
+        notificationDTO.setId(notification.getNotificationId());
+        notificationDTO.setUserId(notification.getRecipient().getUserId());
+        notificationDTO.setTitle(notification.getType().toString());
+        notificationDTO.setMessage(notification.getMessage());
+        notificationDTO.setStatus(notification.getStatus().toString());
+        return notificationDTO;
     }
 
-    // Pobieranie powiadomienia po ID
-    public Optional<Notification> getNotificationById(Long notificationId) {
-        return notificationRepository.findById(notificationId);
+    // Convert NotificationDTO to Notification
+    private Notification convertToEntity(NotificationDTO notificationDTO) {
+        Notification notification = new Notification();
+        // Note: You need to fetch the User entity and set it as the recipient
+        // notification.setRecipient(user);
+        notification.setType(Notification.NotificationType.valueOf(notificationDTO.getTitle()));
+        notification.setMessage(notificationDTO.getMessage());
+        notification.setStatus(Notification.NotificationStatus.valueOf(notificationDTO.getStatus()));
+        return notification;
     }
 
-    // Aktualizacja powiadomienia
+    // Creating a new notification
     @Transactional
-    public Notification updateNotification(Long notificationId, Notification.NotificationStatus newStatus) {
+    public NotificationDTO createNotification(NotificationDTO notificationDTO) {
+        Notification newNotification = convertToEntity(notificationDTO);
+        return convertToDTO(notificationRepository.save(newNotification));
+    }
+
+    // Getting a notification by ID
+    public NotificationDTO getNotificationById(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new IllegalArgumentException("Notification with ID " + notificationId + " not found"));
-        notification.setStatus(newStatus);
-        return notificationRepository.save(notification);
+        return convertToDTO(notification);
     }
 
-    // Pobieranie wszystkich powiadomień dla danego użytkownika
-    public List<Notification> getNotificationsByRecipientId(Long recipientId) {
-        return notificationRepository.findByRecipientUserId(recipientId);
+    // Updating notification data
+    @Transactional
+    public NotificationDTO updateNotification(Long notificationId, NotificationDTO notificationDTO) {
+        Notification existingNotification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("Notification with ID " + notificationId + " not found"));
+        existingNotification.setType(Notification.NotificationType.valueOf(notificationDTO.getTitle()));
+        existingNotification.setMessage(notificationDTO.getMessage());
+        existingNotification.setStatus(Notification.NotificationStatus.valueOf(notificationDTO.getStatus()));
+        return convertToDTO(notificationRepository.save(existingNotification));
     }
 
-    // Usuwanie powiadomienia
+    // Deleting a notification
     @Transactional
     public void deleteNotification(Long notificationId) {
         if (!notificationRepository.existsById(notificationId)) {
             throw new IllegalArgumentException("Notification with ID " + notificationId + " not found");
         }
         notificationRepository.deleteById(notificationId);
+    }
+
+    // Getting all notifications
+    public List<NotificationDTO> getAllNotifications() {
+        return notificationRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }

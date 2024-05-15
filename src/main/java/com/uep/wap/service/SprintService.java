@@ -1,17 +1,14 @@
 package com.uep.wap.service;
 
-import com.uep.wap.model.Project;
+import com.uep.wap.dto.SprintDTO;
 import com.uep.wap.model.Sprint;
-import com.uep.wap.model.Task;
-import com.uep.wap.repository.ProjectRepository;
 import com.uep.wap.repository.SprintRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SprintService {
@@ -19,35 +16,55 @@ public class SprintService {
     @Autowired
     private SprintRepository sprintRepository;
 
-    @Autowired
-    private ProjectRepository projectRepository;
-
-    // Tworzenie nowego sprintu
-    @Transactional
-    public Sprint createSprint(Long projectId, String name, Date startDate, Date endDate) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project with ID " + projectId + " not found"));
-        Sprint sprint = new Sprint(project, name, startDate, endDate);
-        return sprintRepository.save(sprint);
+    // Convert Sprint to SprintDTO
+    private SprintDTO convertToDTO(Sprint sprint) {
+        SprintDTO sprintDTO = new SprintDTO();
+        sprintDTO.setId(sprint.getSprintId());
+        sprintDTO.setName(sprint.getName());
+        sprintDTO.setStartDate(sprint.getStartDate());
+        sprintDTO.setEndDate(sprint.getEndDate());
+        // Add other fields as necessary
+        return sprintDTO;
     }
 
-    // Pobieranie sprintu po ID
-    public Optional<Sprint> getSprintById(Long sprintId) {
-        return sprintRepository.findById(sprintId);
+    // Convert SprintDTO to Sprint
+    private Sprint convertToEntity(SprintDTO sprintDTO) {
+        Sprint sprint = new Sprint();
+        sprint.setSprintId(sprintDTO.getId());
+        sprint.setName(sprintDTO.getName());
+        sprint.setStartDate(sprintDTO.getStartDate());
+        sprint.setEndDate(sprintDTO.getEndDate());
+        // Add other fields as necessary
+        return sprint;
     }
 
-    // Aktualizacja sprintu
+    // Creating a new sprint
     @Transactional
-    public Sprint updateSprint(Long sprintId, String name, Date startDate, Date endDate) {
+    public SprintDTO createSprint(SprintDTO sprintDTO) {
+        Sprint newSprint = convertToEntity(sprintDTO);
+        return convertToDTO(sprintRepository.save(newSprint));
+    }
+
+    // Getting a sprint by ID
+    public SprintDTO getSprintById(Long sprintId) {
+        Sprint sprint = sprintRepository.findById(sprintId)
+                .orElseThrow(() -> new IllegalArgumentException("Sprint with ID " + sprintId + " not found"));
+        return convertToDTO(sprint);
+    }
+
+    // Updating sprint data
+    @Transactional
+    public SprintDTO updateSprint(Long sprintId, SprintDTO sprintDTO) {
         Sprint existingSprint = sprintRepository.findById(sprintId)
                 .orElseThrow(() -> new IllegalArgumentException("Sprint with ID " + sprintId + " not found"));
-        existingSprint.setName(name);
-        existingSprint.setStartDate(startDate);
-        existingSprint.setEndDate(endDate);
-        return sprintRepository.save(existingSprint);
+        existingSprint.setName(sprintDTO.getName());
+        existingSprint.setStartDate(sprintDTO.getStartDate());
+        existingSprint.setEndDate(sprintDTO.getEndDate());
+        // Update other fields as necessary
+        return convertToDTO(sprintRepository.save(existingSprint));
     }
 
-    // Usunięcie sprintu
+    // Deleting a sprint
     @Transactional
     public void deleteSprint(Long sprintId) {
         if (!sprintRepository.existsById(sprintId)) {
@@ -56,26 +73,10 @@ public class SprintService {
         sprintRepository.deleteById(sprintId);
     }
 
-    // Dodawanie zadania do sprintu
-    @Transactional
-    public Sprint addTaskToSprint(Long sprintId, Task task) {
-        Sprint sprint = sprintRepository.findById(sprintId)
-                .orElseThrow(() -> new IllegalArgumentException("Sprint with ID " + sprintId + " not found"));
-        sprint.addTask(task);
-        return sprintRepository.save(sprint);
-    }
-
-    // Usunięcie zadania ze sprintu
-    @Transactional
-    public Sprint removeTaskFromSprint(Long sprintId, Task task) {
-        Sprint sprint = sprintRepository.findById(sprintId)
-                .orElseThrow(() -> new IllegalArgumentException("Sprint with ID " + sprintId + " not found"));
-        sprint.removeTask(task);
-        return sprintRepository.save(sprint);
-    }
-
-    // Pobieranie wszystkich sprintów dla danego projektu
-    public List<Sprint> getSprintsByProjectId(Long projectId) {
-        return sprintRepository.findByProjectProjectId(projectId);
+    // Getting all sprints
+    public List<SprintDTO> getAllSprints() {
+        return sprintRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }

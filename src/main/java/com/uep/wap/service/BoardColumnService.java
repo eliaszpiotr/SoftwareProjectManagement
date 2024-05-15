@@ -1,16 +1,14 @@
 package com.uep.wap.service;
 
-import com.uep.wap.model.Board;
+import com.uep.wap.dto.BoardColumnDTO;
 import com.uep.wap.model.BoardColumn;
-import com.uep.wap.model.Task;
 import com.uep.wap.repository.BoardColumnRepository;
-import com.uep.wap.repository.BoardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BoardColumnService {
@@ -18,74 +16,53 @@ public class BoardColumnService {
     @Autowired
     private BoardColumnRepository boardColumnRepository;
 
-    @Autowired
-    private BoardRepository boardRepository;
+    // Convert BoardColumn to BoardColumnDTO
+    private BoardColumnDTO convertToDTO(BoardColumn boardColumn) {
+        BoardColumnDTO boardColumnDTO = new BoardColumnDTO();
+        boardColumnDTO.setColumnId(boardColumn.getColumnId());
+        boardColumnDTO.setTitle(boardColumn.getName());
+        boardColumnDTO.setBoardId(boardColumn.getBoard().getBoardId());
+        // Note: You need to fetch the Issue entities and set them
+        // boardColumnDTO.setIssueIds(issueIds);
+        return boardColumnDTO;
+    }
 
-    // Dodaj nową kolumnę do tablicy, sprawdzając czy tablica istnieje
+    // Convert BoardColumnDTO to BoardColumn
+    private BoardColumn convertToEntity(BoardColumnDTO boardColumnDTO) {
+        BoardColumn boardColumn = new BoardColumn();
+        boardColumn.setName(boardColumnDTO.getTitle());
+        // Note: You need to convert the issueIds to a list of Issue entities
+        // boardColumn.setIssues(issues);
+        return boardColumn;
+    }
+
+    // Creating a new board column
     @Transactional
-    public BoardColumn createBoardColumn(Long boardId, String columnName) {
-        Optional<Board> board = boardRepository.findById(boardId);
-        if (!board.isPresent()) {
-            throw new IllegalArgumentException("Board with ID " + boardId + " does not exist");
-        }
-        BoardColumn boardColumn = new BoardColumn(board.get(), columnName);
-        return boardColumnRepository.save(boardColumn);
+    public BoardColumnDTO createBoardColumn(BoardColumnDTO boardColumnDTO) {
+        BoardColumn newBoardColumn = convertToEntity(boardColumnDTO);
+        return convertToDTO(boardColumnRepository.save(newBoardColumn));
     }
 
-    // Pobierz kolumnę po jej ID
-    public Optional<BoardColumn> getBoardColumnById(Long columnId) {
-        return boardColumnRepository.findById(columnId);
+    // Getting a board column by ID
+    public BoardColumnDTO getBoardColumnById(Long columnId) {
+        BoardColumn boardColumn = boardColumnRepository.findById(columnId)
+                .orElseThrow(() -> new IllegalArgumentException("Board Column with ID " + columnId + " not found"));
+        return convertToDTO(boardColumn);
     }
 
-    // Pobierz wszystkie kolumny przypisane do tablicy
-    public List<BoardColumn> getAllColumnsByBoardId(Long boardId) {
-        return boardColumnRepository.findByBoardBoardId(boardId);
-    }
-
-    // Aktualizuj kolumnę
-    @Transactional
-    public BoardColumn updateBoardColumn(BoardColumn updatedBoardColumn) {
-        Optional<BoardColumn> existingColumn = boardColumnRepository.findById(updatedBoardColumn.getColumnId());
-        if (!existingColumn.isPresent()) {
-            throw new IllegalArgumentException("BoardColumn with ID " + updatedBoardColumn.getColumnId() + " not found");
-        }
-        existingColumn.get().setName(updatedBoardColumn.getName());
-        // Aktualizuj powiązane zadania, jeśli to konieczne
-        existingColumn.get().setTasks(updatedBoardColumn.getTasks());
-        return boardColumnRepository.save(existingColumn.get());
-    }
-
-    // Usuń kolumnę
+    // Deleting a board column
     @Transactional
     public void deleteBoardColumn(Long columnId) {
-        Optional<BoardColumn> column = boardColumnRepository.findById(columnId);
-        if (!column.isPresent()) {
-            throw new IllegalArgumentException("BoardColumn with ID " + columnId + " not found");
+        if (!boardColumnRepository.existsById(columnId)) {
+            throw new IllegalArgumentException("Board Column with ID " + columnId + " not found");
         }
-        boardColumnRepository.delete(column.get());
+        boardColumnRepository.deleteById(columnId);
     }
 
-    // Dodaj zadanie do kolumny
-    @Transactional
-    public BoardColumn addTaskToColumn(Long columnId, Task task) {
-        Optional<BoardColumn> column = boardColumnRepository.findById(columnId);
-        if (!column.isPresent()) {
-            throw new IllegalArgumentException("BoardColumn with ID " + columnId + " not found");
-        }
-        column.get().getTasks().add(task);
-        task.setBoardColumn(column.get());
-        return boardColumnRepository.save(column.get());
-    }
-
-    // Usuń zadanie z kolumny
-    @Transactional
-    public BoardColumn removeTaskFromColumn(Long columnId, Task task) {
-        Optional<BoardColumn> column = boardColumnRepository.findById(columnId);
-        if (!column.isPresent()) {
-            throw new IllegalArgumentException("BoardColumn with ID " + columnId + " not found");
-        }
-        column.get().getTasks().remove(task);
-        task.setBoardColumn(null);
-        return boardColumnRepository.save(column.get());
+    // Getting all board columns
+    public List<BoardColumnDTO> getAllBoardColumns() {
+        return boardColumnRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 }
